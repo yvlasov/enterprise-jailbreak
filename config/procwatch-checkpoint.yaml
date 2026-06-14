@@ -1,0 +1,20 @@
+proc:
+  name: checkpoint-vpn
+  start:
+    command: "/opt/vpn/vpn-start-checkpoint.sh"
+    arg_env: "CHECKPOINT_VPN_OTP"
+    timeout: 120
+    ready_match: "Connected since"
+    failure_match: "failed"
+  stop:
+    command: "/opt/vpn/vpn-stop-checkpoint.sh"
+    timeout: 10
+  health:
+    command: "ping -c 1 -W 2 __VPN_HEALTH_IP__"
+    interval: 30
+    success_exit_code: 0
+    consecutive_failures: 3
+    session_ttl: 0
+host: "0.0.0.0"
+port: 8080
+log_level: "info"

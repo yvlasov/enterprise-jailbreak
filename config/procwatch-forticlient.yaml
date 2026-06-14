@@ -1,0 +1,19 @@
+proc:
+  name: forticlient-vpn
+  start:
+    command: "/opt/vpn/vpn-start-forticlient.sh"
+    timeout: -1
+    ready_match: "Tunnel is up"
+    failure_match: "ERROR"
+  stop:
+    command: "/opt/vpn/vpn-stop-forticlient.sh"
+    timeout: 10
+  health:
+    command: "ping -c 1 -W 2 __VPN_HEALTH_IP__"
+    interval: 30
+    success_exit_code: 0
+    consecutive_failures: 3
+    session_ttl: 0
+host: "0.0.0.0"
+port: 8080
+log_level: "info"

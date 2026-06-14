@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProcWatch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0c0c0e;
+    --surface:   #131316;
+    --surface2:  #1a1a1f;
+    --border:    #25252d;
+    --border2:   #2e2e38;
+    --text:      #e8e8f0;
+    --text-dim:  #6b6b7e;
+    --text-muted:#3e3e4d;
+    --mono:      'IBM Plex Mono', monospace;
+    --sans:      'Inter', sans-serif;
+
+    --green:     #22c55e;
+    --green-dim: #166534;
+    --amber:     #f59e0b;
+    --amber-dim: #78350f;
+    --red:       #ef4444;
+    --red-dim:   #7f1d1d;
+    --blue:      #3b82f6;
+    --blue-dim:  #1e3a5f;
+    --gray:      #6b6b7e;
+    --gray-dim:  #1f1f26;
+
+    --radius:    12px;
+    --radius-sm: 7px;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 48px 16px 80px;
+  }
+
+  /* ── header ── */
+  header {
+    width: 100%;
+    max-width: 560px;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .logo {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .logo span {
+    color: var(--blue);
+  }
+
+  .version {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .poll-indicator {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .pulse-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    transition: background 0.3s;
+  }
+
+  .pulse-dot.active {
+    background: var(--green);
+    animation: pulse 1s ease-out;
+  }
+
+  @keyframes pulse {
+    0%   { opacity: 1; transform: scale(1.4); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  /* ── main card ── */
+  .card {
+    width: 100%;
+    max-width: 560px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  /* ── card header ── */
+  .card-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .proc-name {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  /* ── state badge ── */
+  .badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    padding: 3px 9px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    transition: all 0.3s;
+  }
+
+  .badge-RUNNING  { color: var(--green); background: rgba(34,197,94,0.1);  border: 1px solid rgba(34,197,94,0.25);  }
+  .badge-DEGRADED { color: var(--amber); background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25); }
+  .badge-FAILED   { color: var(--red);   background: rgba(239,68,68,0.1);  border: 1px solid rgba(239,68,68,0.25);  }
+  .badge-STARTING { color: var(--blue);  background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25); }
+  .badge-STOPPING { color: var(--amber); background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25); }
+  .badge-STOPPED  { color: var(--gray);  background: rgba(107,107,126,0.1);border: 1px solid rgba(107,107,126,0.25);}
+
+  /* ── metrics row ── */
+  .metrics {
+    padding: 14px 24px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .metric {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .metric-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+  }
+
+  .metric-value {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .metric-value.ok     { color: var(--green); }
+  .metric-value.warn   { color: var(--amber); }
+  .metric-value.error  { color: var(--red); }
+  .metric-value.muted  { color: var(--text-muted); }
+
+  /* ── controls ── */
+  .controls {
+    padding: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .arg-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .arg-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--mono);
+    white-space: nowrap;
+    min-width: 28px;
+  }
+
+  .arg-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 7px 11px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .arg-input::placeholder { color: var(--text-muted); }
+  .arg-input:focus { border-color: var(--blue); }
+
+  .btn-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 14px;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    background: var(--surface2);
+    color: var(--text-dim);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .btn:hover  { border-color: var(--border); color: var(--text); background: #202028; }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+  .btn-start  { border-color: rgba(34,197,94,0.3);  color: var(--green); }
+  .btn-start:hover  { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.5); }
+
+  .btn-stop   { border-color: rgba(239,68,68,0.3);  color: var(--red); }
+  .btn-stop:hover   { background: rgba(239,68,68,0.08);  border-color: rgba(239,68,68,0.5); }
+
+  .btn-restart{ border-color: rgba(59,130,246,0.3); color: var(--blue); }
+  .btn-restart:hover{ background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.5); }
+
+  .btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+  /* ── spinner in button ── */
+  .spinner {
+    width: 12px; height: 12px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: none;
+  }
+  .btn.loading .spinner { display: block; }
+  .btn.loading .btn-icon { display: none; }
+  .btn.loading .btn-label { opacity: 0.6; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── accordion ── */
+  .logs {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .accordion {
+    border-top: 1px solid var(--border);
+  }
+
+  .accordion-trigger {
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 11px 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: var(--sans);
+    font-weight: 500;
+    transition: color 0.15s, background 0.15s;
+    text-align: left;
+  }
+
+  .accordion-trigger:hover { color: var(--text-dim); background: rgba(255,255,255,0.02); }
+
+  .accordion-trigger .chevron {
+    width: 14px; height: 14px;
+    transition: transform 0.2s;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .accordion-trigger.open .chevron { transform: rotate(90deg); }
+
+  .acc-action {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    flex: 1;
+  }
+
+  .acc-ts {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-left: auto;
+  }
+
+  .acc-rc {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  .acc-rc.ok  { color: var(--green); background: rgba(34,197,94,0.08); }
+  .acc-rc.err { color: var(--red);   background: rgba(239,68,68,0.08); }
+
+  .accordion-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+  }
+
+  .accordion-body.open { max-height: 400px; }
+
+  .accordion-body pre {
+    margin: 0 16px 12px;
+    padding: 12px 14px;
+    background: #0a0a0d;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #a0a0b8;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 340px;
+    overflow-y: auto;
+    line-height: 1.6;
+  }
+
+  .accordion-body pre::-webkit-scrollbar       { width: 4px; }
+  .accordion-body pre::-webkit-scrollbar-track  { background: transparent; }
+  .accordion-body pre::-webkit-scrollbar-thumb  { background: var(--border2); border-radius: 2px; }
+
+  .empty-output { color: var(--text-muted); font-style: italic; }
+
+  /* ── live terminal ── */
+  .live-terminal {
+    margin: 0 16px 12px;
+    padding: 12px 14px;
+    background: #0a0a0d;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #a0a0b8;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 340px;
+    overflow-y: auto;
+    line-height: 1.6;
+    display: none;
+  }
+  .live-terminal.active { display: block; }
+  .live-terminal::-webkit-scrollbar       { width: 4px; }
+  .live-terminal::-webkit-scrollbar-track  { background: transparent; }
+  .live-terminal::-webkit-scrollbar-thumb  { background: var(--border2); border-radius: 2px; }
+
+  .live-header {
+    padding: 11px 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .live-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--blue);
+    animation: blink 1s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+
+  /* ── toast ── */
+  .toast-wrap {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  .toast {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    font-size: 13px;
+    color: var(--text);
+    animation: toastIn 0.2s ease, toastOut 0.3s ease 2.5s forwards;
+    pointer-events: auto;
+  }
+
+  .toast.ok  { border-color: rgba(34,197,94,0.4);  color: var(--green); }
+  .toast.err { border-color: rgba(239,68,68,0.4);  color: var(--red); }
+
+  @keyframes toastIn  { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes toastOut { from { opacity:1; } to { opacity:0; pointer-events:none; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Proc<span>Watch</span></div>
+  <div class="version">v1.0</div>
+  <div class="poll-indicator">
+    <div class="pulse-dot" id="pollDot"></div>
+    <span id="pollLabel">live</span>
+  </div>
+</header>
+
+<div class="card" id="mainCard">
+  <div class="card-header">
+    <div class="proc-name" id="procName">—</div>
+    <div class="badge badge-STOPPED" id="stateBadge">STOPPED</div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Uptime</div>
+      <div class="metric-value muted" id="metUptime">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">TTL remaining</div>
+      <div class="metric-value muted" id="metTTL">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Health</div>
+      <div class="metric-value muted" id="metHealth">—</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="arg-row">
+      <span class="arg-label">arg</span>
+      <input class="arg-input" id="argInput" type="text" placeholder="optional — 2FA code, token…" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-start" id="btnStart" onclick="doAction('start')">
+        <span class="spinner"></span>
+        <svg class="btn-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M3 2.5l10 5.5-10 5.5V2.5z"/></svg>
+        <span class="btn-label">Start</span>
+      </button>
+      <button class="btn btn-stop" id="btnStop" onclick="doAction('stop')">
+        <span class="spinner"></span>
+        <svg class="btn-icon" viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="3" width="10" height="10" rx="1.5"/></svg>
+        <span class="btn-label">Stop</span>
+      </button>
+      <button class="btn btn-restart" id="btnRestart" onclick="doAction('restart')">
+        <span class="spinner"></span>
+        <svg class="btn-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 8A5.5 5.5 0 1 1 10 3.07"/><polyline points="10 1 10 4 13 4"/></svg>
+        <span class="btn-label">Restart</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="liveSection" style="display:none">
+    <div class="live-header">
+      <div class="live-dot" id="liveDot"></div>
+      <span id="liveLabel">live output</span>
+    </div>
+    <pre class="live-terminal active" id="liveTerminal"></pre>
+  </div>
+
+  <div class="logs" id="logsContainer">
+    <!-- accordion items injected here -->
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+const POLL_INTERVAL = 5000;
+let openAccordions = new Set();
+let lastData = null;
+let liveSource = null;
+
+// ── live output stream ────────────────────────────────────────────────────────
+
+function startLiveStream() {
+  stopLiveStream();
+  const terminal = document.getElementById('liveTerminal');
+  const section  = document.getElementById('liveSection');
+  terminal.textContent = '';
+  section.style.display = 'block';
+
+  liveSource = new EventSource('/output/stream');
+  liveSource.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+    if (data === '[DONE]') { stopLiveStream(); return; }
+    terminal.textContent += data;
+    terminal.scrollTop = terminal.scrollHeight;
+  };
+  liveSource.onerror = () => stopLiveStream();
+}
+
+function stopLiveStream() {
+  if (liveSource) { liveSource.close(); liveSource = null; }
+  const dot = document.getElementById('liveDot');
+  if (dot) dot.style.animationPlayState = 'paused';
+}
+
+// ── polling ──────────────────────────────────────────────────────────────────
+
+async function poll() {
+  try {
+    const res = await fetch('/status');
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    render(data);
+    flashPoll(true);
+  } catch(e) {
+    flashPoll(false);
+  }
+}
+
+function flashPoll(ok) {
+  const dot = document.getElementById('pollDot');
+  dot.classList.remove('active');
+  void dot.offsetWidth;
+  dot.style.background = ok ? 'var(--green)' : 'var(--red)';
+  dot.classList.add('active');
+  setTimeout(() => {
+    dot.style.background = '';
+    dot.classList.remove('active');
+  }, 1200);
+}
+
+setInterval(poll, POLL_INTERVAL);
+poll();
+
+// ── render ────────────────────────────────────────────────────────────────────
+
+function render(data) {
+  lastData = data;
+
+  document.getElementById('procName').textContent = data.name;
+
+  const badge = document.getElementById('stateBadge');
+  badge.textContent = data.state;
+  badge.className = 'badge badge-' + data.state;
+
+  // metrics
+  const upEl    = document.getElementById('metUptime');
+  const ttlEl   = document.getElementById('metTTL');
+  const hthEl   = document.getElementById('metHealth');
+
+  upEl.textContent  = data.uptime_human || '—';
+  upEl.className    = 'metric-value ' + (data.uptime ? 'ok' : 'muted');
+
+  if (data.ttl_remaining != null) {
+    ttlEl.textContent = fmtSeconds(data.ttl_remaining);
+    ttlEl.className   = 'metric-value ' + (data.ttl_remaining < 300 ? 'warn' : 'ok');
+  } else {
+    ttlEl.textContent = '—';
+    ttlEl.className   = 'metric-value muted';
+  }
+
+  if (data.last_health_check_ago != null) {
+    const cls = data.last_health_ok ? 'ok' : 'error';
+    hthEl.textContent = (data.last_health_ok ? '✓' : '✗') + ' ' + fmtAgo(data.last_health_check_ago);
+    hthEl.className   = 'metric-value ' + cls;
+  } else {
+    hthEl.textContent = '—';
+    hthEl.className   = 'metric-value muted';
+  }
+
+  // accordions
+  renderLogs(data.action_logs);
+}
+
+const ACTION_ORDER = ['start', 'stop', 'restart', 'health'];
+const ACTION_LABELS = { start: 'start', stop: 'stop', restart: 'restart', health: 'health check' };
+
+function renderLogs(logs) {
+  const container = document.getElementById('logsContainer');
+  const present = ACTION_ORDER.filter(k => logs[k]);
+  if (!present.length) { container.innerHTML = ''; return; }
+
+  container.innerHTML = present.map(key => {
+    const entry = logs[key];
+    const r     = entry.result;
+    const isOpen = openAccordions.has(key);
+    const ts    = entry.timestamp ? fmtTimestamp(entry.timestamp) : '';
+    const rc    = r ? r.returncode : null;
+    const rcCls = (rc === 0) ? 'ok' : 'err';
+    const rcTxt = rc != null ? 'rc=' + rc : '';
+    const out   = (r && r.combined) ? escapeHtml(r.combined) : '<span class="empty-output">(no output)</span>';
+
+    return `
+    <div class="accordion" id="acc-${key}">
+      <button class="accordion-trigger ${isOpen ? 'open' : ''}" onclick="toggleAcc('${key}')">
+        <svg class="chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 4 10 8 6 12"/>
+        </svg>
+        <span class="acc-action">${ACTION_LABELS[key] || key}</span>
+        ${rcTxt ? `<span class="acc-rc ${rcCls}">${rcTxt}</span>` : ''}
+        <span class="acc-ts">${ts}</span>
+      </button>
+      <div class="accordion-body ${isOpen ? 'open' : ''}" id="accbody-${key}">
+        <pre>${out}</pre>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleAcc(key) {
+  const trigger = document.querySelector(`#acc-${key} .accordion-trigger`);
+  const body    = document.getElementById('accbody-' + key);
+  const isOpen  = openAccordions.has(key);
+  if (isOpen) {
+    openAccordions.delete(key);
+    trigger.classList.remove('open');
+    body.classList.remove('open');
+  } else {
+    openAccordions.add(key);
+    trigger.classList.add('open');
+    body.classList.add('open');
+  }
+}
+
+// ── actions ───────────────────────────────────────────────────────────────────
+
+async function doAction(action) {
+  const btn = document.getElementById('btn' + capitalize(action));
+  btn.disabled = true;
+  btn.classList.add('loading');
+
+  const arg = document.getElementById('argInput').value.trim();
+
+  try {
+    if (action === 'start' || action === 'restart') startLiveStream();
+
+    const body = (action !== 'stop' && arg) ? JSON.stringify({ arg }) : undefined;
+    const res  = await fetch('/' + action, {
+      method: 'POST',
+      headers: body ? { 'Content-Type': 'application/json' } : {},
+      body,
+    });
+    const data = await res.json();
+    toast(
+      action + (data.ok ? ' ✓' : ' ✗ rc=' + data.returncode),
+      data.ok ? 'ok' : 'err'
+    );
+    // open the matching accordion
+    openAccordions.add(action === 'restart' ? 'start' : action);
+    await poll();
+  } catch(e) {
+    toast(action + ' failed: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('loading');
+  }
+}
+
+// ── utils ─────────────────────────────────────────────────────────────────────
+
+function fmtSeconds(s) {
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = Math.floor(s % 60);
+  if (h) return h + 'h ' + m + 'm';
+  if (m) return m + 'm ' + sec + 's';
+  return sec + 's';
+}
+
+function fmtAgo(s) {
+  if (s < 60)  return Math.round(s) + 's ago';
+  if (s < 3600) return Math.round(s/60) + 'm ago';
+  return Math.round(s/3600) + 'h ago';
+}
+
+function fmtTimestamp(ts) {
+  const d = new Date(ts * 1000);
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+function capitalize(s) { return s[0].toUpperCase() + s.slice(1); }
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function toast(msg, cls = '') {
+  const wrap = document.getElementById('toastWrap');
+  const el   = document.createElement('div');
+  el.className = 'toast ' + cls;
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+</script>
+</body>
+</html>

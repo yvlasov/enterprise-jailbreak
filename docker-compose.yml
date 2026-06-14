@@ -1,0 +1,51 @@
+services:
+
+  checkpoint:
+    image: enterprise-jailbreak
+    profiles: [checkpoint]
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "8080:8080"
+      - "1080:1080"
+    environment:
+      VPN_TYPE: checkpoint
+      CHECKPOINT_VPN_SERVER: ${CHECKPOINT_VPN_SERVER}
+      CHECKPOINT_VPN_USER: ${CHECKPOINT_VPN_USER}
+      CHECKPOINT_VPN_HEALTH_IP: ${CHECKPOINT_VPN_HEALTH_IP:-10.226.0.5}
+    restart: unless-stopped
+    secrets:
+      - checkpoint_vpn_password
+    # volumes:
+    #   - ./config/dnsmasq.conf:/config/dnsmasq.conf:ro
+    #   - ./config/danted.conf:/config/danted.conf:ro
+
+  forticlient:
+    image: enterprise-jailbreak
+    profiles: [forticlient]
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "8080:8080"
+      - "1080:1080"
+    environment:
+      VPN_TYPE: forticlient
+      FORTI_VPN_HOST: ${FORTI_VPN_HOST}
+      FORTI_VPN_USER: ${FORTI_VPN_USER}
+      FORTI_VPN_HEALTH_IP: ${FORTI_VPN_HEALTH_IP:-8.8.8.8}
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    devices:
+      - /dev/ppp
+    secrets:
+      - forti_vpn_password
+    # volumes (add to existing list above):
+    #   - ./config/dnsmasq.conf:/config/dnsmasq.conf:ro
+    #   - ./config/danted.conf:/config/danted.conf:ro
+
+secrets:
+  checkpoint_vpn_password:
+    file: ./secrets/checkpoint_vpn_password.txt
+  forti_vpn_password:
+    file: ./secrets/forti_vpn_password.txt

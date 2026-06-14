@@ -1,0 +1,7 @@
+**/.git
+**/*.md
+secrets/
+.env
+.env.example
+docker-compose.yml
+Makefile
