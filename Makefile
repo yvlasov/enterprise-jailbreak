@@ -7,7 +7,7 @@ help:
 	@echo "  make run-forticlient  Run with FortiClient VPN (requires .env + secrets/forti_vpn_password.txt)"
 
 build:
-	docker build --platform linux/arm64 -t enterprise-jailbreak .
+	docker build --platform linux/arm64 -t yvlasov/enterprise-jailbreak .
 
 run-checkpoint:
 	docker compose --profile checkpoint up
