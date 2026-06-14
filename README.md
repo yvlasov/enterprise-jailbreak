@@ -4,7 +4,7 @@
 ARM64 Docker image with FortiClient and CheckPoint VPN support, dnsmasq, and Dante SOCKS5 proxy.
 
 Related projects:
-- `../forti-cookie/` — Playwright/Chromium container that extracts the FortiGate SVPNCOOKIE
+- [yvlasov/forti-cookie](https://github.com/yvlasov/forti-cookie) — Playwright/Chromium container that extracts the FortiGate SVPNCOOKIE
 
 ## Project structure
 
@@ -87,7 +87,7 @@ docker run \
 
 ### FortiClient VPN
 
-Requires `NET_ADMIN` and the host Docker socket mount. The `forti-cookie` image is accessed
+Requires `NET_ADMIN` and the host Docker socket mount. The `yvlasov/forti-cookie` image is accessed
 directly from the host daemon — no image loading step needed.
 
 The host must have the `ppp` kernel module loaded and `/dev/ppp` device available.
@@ -107,7 +107,7 @@ docker run \
   -e FORTI_VPN_HOST=your.fortigate.host \
   -e FORTI_VPN_USER='domain\username' \
   -e FORTI_VPN_PASSWORD=your_password \
-  enterprise-jailbreak
+  yvlasov/enterprise-jailbreak
 ```
 
 | Env var | Default | Description |

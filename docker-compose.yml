@@ -1,7 +1,7 @@
 services:
 
   checkpoint:
-    image: enterprise-jailbreak
+    image: yvlasov/enterprise-jailbreak
     profiles: [checkpoint]
     cap_add:
       - NET_ADMIN
@@ -21,7 +21,7 @@ services:
     #   - ./config/danted.conf:/config/danted.conf:ro
 
   forticlient:
-    image: enterprise-jailbreak
+    image: yvlasov/enterprise-jailbreak
     profiles: [forticlient]
     cap_add:
       - NET_ADMIN
