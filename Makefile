@@ -3,11 +3,16 @@
 help:
 	@echo "Usage:"
 	@echo "  make build            Build the enterprise-jailbreak Docker image"
+	@echo "  make publish          Build and publish the enterprise-jailbreak Docker image on Docker Hub"
 	@echo "  make run-checkpoint   Run with CheckPoint VPN (requires .env + secrets/checkpoint_vpn_password.txt)"
 	@echo "  make run-forticlient  Run with FortiClient VPN (requires .env + secrets/forti_vpn_password.txt)"
 
 build:
 	docker build --platform linux/arm64 -t yvlasov/enterprise-jailbreak .
+
+publish:
+	docker build --platform linux/arm64 -t yvlasov/enterprise-jailbreak .
+	docker push yvlasov/enterprise-jailbreak
 
 run-checkpoint:
 	docker compose --profile checkpoint up -d

@@ -66,6 +66,7 @@ COPY config/danted.conf /config/danted.conf
 COPY config/procwatch-checkpoint.yaml /config/procwatch-checkpoint.yaml
 COPY config/procwatch-forticlient.yaml /config/procwatch-forticlient.yaml
 COPY config/proxy.pac /config/proxy.pac
+COPY config/tinyproxy.conf /config/tinyproxy.conf
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
