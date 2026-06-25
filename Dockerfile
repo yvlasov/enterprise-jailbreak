@@ -15,8 +15,10 @@ RUN apt-get update && apt-get install -y \
     iptables \
     net-tools \
     iputils-ping \
+    iproute2 \
     nmap \
     tcpdump \
+    tinyproxy \
     screen \
     dnsmasq \
     dante-server \
@@ -63,11 +65,15 @@ COPY config/dnsmasq.conf /config/dnsmasq.conf
 COPY config/danted.conf /config/danted.conf
 COPY config/procwatch-checkpoint.yaml /config/procwatch-checkpoint.yaml
 COPY config/procwatch-forticlient.yaml /config/procwatch-forticlient.yaml
+COPY config/proxy.pac /config/proxy.pac
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-EXPOSE 8080 1080
+EXPOSE 8080 1080 8888
+# 8080 - proxy.pac
+# 1080 - dante
+# 8888 - tinyproxy
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
     CMD curl -sf http://localhost:8080/health || exit 1

@@ -25,7 +25,8 @@ enterprise-jailbreak/
     ├── dnsmasq.conf
     ├── danted.conf
     ├── procwatch-checkpoint.yaml
-    └── procwatch-forticlient.yaml
+    ├── procwatch-forticlient.yaml
+    └── proxy.pac                    # optional — served at http://localhost:8080/proxy.pac
 ```
 
 At startup `entrypoint.sh` renders the relevant templates into `/run/` (substituting env vars)
@@ -191,6 +192,19 @@ curl -X POST http://localhost:8080/stop
 curl http://localhost:8080/status
 curl http://localhost:8080/health   # 200 = RUNNING, 503 = otherwise
 ```
+
+### Proxy Auto-Config (PAC)
+
+If `/config/proxy.pac` exists, ProcWatch serves it at `http://localhost:8080/proxy.pac`
+with the correct `application/x-ns-proxy-autoconfig` content type.
+Returns 404 if the file is absent.
+
+```bash
+# mount your PAC file
+-v /path/to/proxy.pac:/config/proxy.pac:ro
+```
+
+Point browsers or OS network settings to `http://<container-ip>:8080/proxy.pac`.
 
 `CHECKPOINT_VPN_PASSWORD` is the AD domain password — provided in plain text,
 base64-encoded automatically by the entrypoint before writing `snx-rs.conf`.

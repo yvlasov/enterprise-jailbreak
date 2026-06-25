@@ -19,6 +19,7 @@ services:
     # volumes:
     #   - ./config/dnsmasq.conf:/config/dnsmasq.conf:ro
     #   - ./config/danted.conf:/config/danted.conf:ro
+    #   - ./config/proxy.pac:/config/proxy.pac:ro
 
   forticlient:
     image: yvlasov/enterprise-jailbreak
@@ -36,15 +37,14 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    #   - ./config/dnsmasq.conf:/config/dnsmasq.conf:ro
+    #   - ./config/danted.conf:/config/danted.conf:ro
+    #   - ./config/proxy.pac:/config/proxy.pac:ro
     devices:
       - /dev/ppp
     secrets:
       - forti_vpn_password
-    # volumes (add to existing list above):
-    #   - ./config/dnsmasq.conf:/config/dnsmasq.conf:ro
-    #   - ./config/danted.conf:/config/danted.conf:ro
 
-secrets:
   checkpoint_vpn_password:
     file: ./secrets/checkpoint_vpn_password.txt
   forti_vpn_password:

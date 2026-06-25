@@ -5,8 +5,9 @@ from contextlib import asynccontextmanager
 from typing import Optional
 
 import json
+import os
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, Response, StreamingResponse
 from pydantic import BaseModel
 
 from config import load_config
@@ -141,6 +142,16 @@ async def output_stream():
         yield "data: \"[DONE]\"\n\n"
     return StreamingResponse(generate(), media_type="text/event-stream",
                              headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+@app.get("/proxy.pac")
+async def proxy_pac():
+    pac_path = "/config/proxy.pac"
+    if not os.path.isfile(pac_path):
+        raise HTTPException(status_code=404, detail="proxy.pac not found")
+    with open(pac_path) as f:
+        content = f.read()
+    return Response(content=content, media_type="application/x-ns-proxy-autoconfig")
 
 
 @app.get("/", response_class=HTMLResponse)

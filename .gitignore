@@ -3,3 +3,4 @@ secrets/
 .claude/
 __pycache__/
 *.pyc
+DESCRIPTION.md

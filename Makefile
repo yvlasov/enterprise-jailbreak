@@ -10,7 +10,7 @@ build:
 	docker build --platform linux/arm64 -t yvlasov/enterprise-jailbreak .
 
 run-checkpoint:
-	docker compose --profile checkpoint up
+	docker compose --profile checkpoint up -d
 
 run-forticlient:
-	docker compose --profile forticlient up
+	docker compose --profile forticlient up -d

@@ -67,7 +67,7 @@ if [ "${START_DANTE:-1}" = "1" ]; then
             sleep 2
         done
         echo "VPN interface ${VPN_IFACE} is up, starting Dante..."
-        exec danted -f /run/danted.conf
+        exec danted -D -f /run/danted.conf
     ) &
 fi
 
