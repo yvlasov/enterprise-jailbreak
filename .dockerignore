@@ -1,6 +1,7 @@
 **/.git
 **/*.md
 secrets/
+.claude/
 .env
 .env.example
 docker-compose.yml
