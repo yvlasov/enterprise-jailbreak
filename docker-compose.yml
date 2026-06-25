@@ -14,12 +14,13 @@ services:
       CHECKPOINT_VPN_USER: ${CHECKPOINT_VPN_USER}
       CHECKPOINT_VPN_HEALTH_IP: ${CHECKPOINT_VPN_HEALTH_IP:-10.226.0.5}
     restart: unless-stopped
-    secrets:
-      - checkpoint_vpn_password
-    # volumes:
+    #volumes:
     #   - ./config/dnsmasq.conf:/config/dnsmasq.conf:ro
     #   - ./config/danted.conf:/config/danted.conf:ro
     #   - ./config/proxy.pac:/config/proxy.pac:ro
+    #   - ./config/tinyproxy.conf:/config/tinyproxy.conf:ro
+    secrets:
+      - checkpoint_vpn_password
 
   forticlient:
     image: yvlasov/enterprise-jailbreak
@@ -40,6 +41,7 @@ services:
     #   - ./config/dnsmasq.conf:/config/dnsmasq.conf:ro
     #   - ./config/danted.conf:/config/danted.conf:ro
     #   - ./config/proxy.pac:/config/proxy.pac:ro
+    #   - ./config/tinyproxy.conf:/config/tinyproxy.conf:ro
     devices:
       - /dev/ppp
     secrets:
